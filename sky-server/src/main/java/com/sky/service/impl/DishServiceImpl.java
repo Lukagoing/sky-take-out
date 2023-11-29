@@ -8,10 +8,12 @@ import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
+import com.sky.entity.Setmeal;
 import com.sky.exception.DeletionNotAllowedException;
 import com.sky.mapper.DishFlavorMapper;
 import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetMealDishMapper;
+import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.DishService;
@@ -19,6 +21,7 @@ import com.sky.vo.DishVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,9 +35,15 @@ public class DishServiceImpl implements DishService {
     private DishMapper dishMapper;
     @Autowired
     private DishFlavorMapper dishFlavorMapper;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Autowired
     private SetMealDishMapper setMealDishMapper;
+    @Autowired
+    private SetmealMapper setmealMapper;
+
+
     @Transactional
     public void saveWithFlavor(DishDTO dishDTO) {
         Dish dish = new Dish();
@@ -135,5 +144,39 @@ public class DishServiceImpl implements DishService {
         }
 
         return dishVOList;
+    }
+
+    @Override
+    public void startOrStop(Integer status, Long id) {
+        Dish dish = Dish.builder()
+                .id(id)
+                .status(status)
+                .build();
+        dishMapper.update(dish);
+
+        if (status == StatusConstant.DISABLE){
+            List<Long> dishIds = new ArrayList<>();
+            dishIds.add(id);
+
+            List<Long> setMealIds = setMealDishMapper.getSetMealIdsByDishIds(dishIds);
+            if (setMealIds != null && setMealIds.size() > 0){
+                for (Long setMealId : setMealIds) {
+                    Setmeal setMeal = Setmeal.builder()
+                            .id(setMealId)
+                            .status(status)
+                            .build();
+                    setmealMapper.update(setMeal);
+                }
+            }
+        }
+    }
+
+    @Override
+    public List<Dish> list(Long categoryId) {
+        Dish dish = Dish.builder()
+                .categoryId(categoryId)
+                .status(StatusConstant.ENABLE)
+                .build();
+        return dishMapper.list(dish);
     }
 }
