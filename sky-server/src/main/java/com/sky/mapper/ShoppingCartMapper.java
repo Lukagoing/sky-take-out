@@ -33,6 +33,11 @@ public interface ShoppingCartMapper {
     @Delete("delete from shopping_cart where user_id = #{id}")
     void clearAll(Long id);
 
+    @Delete("delete from shopping_cart where id = #{id}")
+    void clearOne(Long id);
+
+    void insertBatch(List<ShoppingCart> shoppingCartList);
+
 //    @Select("select * from shopping_cart where user_id = #{userId}")
 //    List<ShoppingCart> showShoppingCart(Long userId);
 }

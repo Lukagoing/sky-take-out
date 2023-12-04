@@ -42,4 +42,11 @@ public class ShoppingCartController {
         shoppingCartService.clearAll();
         return Result.success();
     }
+
+    @PostMapping("/sub")
+    @ApiOperation("删除单个菜品")
+    private Result clearOne(@RequestBody ShoppingCartDTO shoppingCartDTO){
+        shoppingCartService.clearOne(shoppingCartDTO);
+        return Result.success();
+    }
 }
