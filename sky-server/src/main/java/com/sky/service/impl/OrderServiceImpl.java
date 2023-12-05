@@ -55,6 +55,7 @@ public class OrderServiceImpl implements OrderService {
     private UserMapper userMapper;
     @Autowired
     private WebSocketServer webSocketServer;
+
     /**
      * 用户下单功能
      *
@@ -134,7 +135,7 @@ public class OrderServiceImpl implements OrderService {
 //        if (jsonObject.getString("code") != null && jsonObject.getString("code").equals("ORDERPAID")) {
 //            throw new OrderBusinessException("该订单已支付");
 //        }.
-
+        Orders orders = orderMapper.getByNumber(ordersPaymentDTO.getOrderNumber());
         OrderPaymentVO vo = jsonObject.toJavaObject(OrderPaymentVO.class);
         vo.setPackageStr(jsonObject.getString("package"));
         Integer OrderPaidStatus = Orders.PAID;
@@ -142,6 +143,7 @@ public class OrderServiceImpl implements OrderService {
         LocalDateTime check_out_time = LocalDateTime.now();
         String orderId = ordersPaymentDTO.getOrderNumber();
         orderMapper.updateStatus(OrderStatus, OrderPaidStatus, check_out_time, orderId);
+        paySuccess(ordersPaymentDTO.getOrderNumber());
         return vo;
     }
 
@@ -271,9 +273,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void confirm(OrdersConfirmDTO ordersConfirmDTO) {
+        log.info("确认接单的数据为:{}",ordersConfirmDTO);
         Orders orders = Orders.builder()
                 .id(ordersConfirmDTO.getId())
-                .status(ordersConfirmDTO.getStatus())
+                .status(Orders.CONFIRMED)
                 .build();
         orderMapper.update(orders);
     }
@@ -338,6 +341,20 @@ public class OrderServiceImpl implements OrderService {
         orders.setDeliveryTime(LocalDateTime.now());
 
         orderMapper.update(orders);
+    }
+
+    @Override
+    public void reminder(Long id) {
+        Orders ordersDB = orderMapper.getById(id);
+
+        if (ordersDB == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        Map map = new HashMap();
+        map.put("type",2);
+        map.put("orderId",id);
+        map.put("content","订单号:" + ordersDB.getNumber());
+        webSocketServer.sendToAllClient(JSON.toJSONString(map));
     }
 
     private List<OrderVO> getOrderVOList(Page<Orders> page){

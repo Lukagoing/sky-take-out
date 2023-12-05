@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface OrderMapper {
@@ -43,4 +44,8 @@ public interface OrderMapper {
     Integer countStatus(Integer toBeConfirmed);
     @Select("select * from orders where status = #{status} and order_time < #{orderTime}")
     List<Orders> getByStatusAndOrderTimeLt(Integer status, LocalDateTime orderTime);
+
+    //select sun(amount) from orders where order_time > ? and order_time < ? and status = 5
+
+    Double sunByMap(Map map);
 }
