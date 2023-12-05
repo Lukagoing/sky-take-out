@@ -48,4 +48,6 @@ public interface OrderMapper {
     //select sun(amount) from orders where order_time > ? and order_time < ? and status = 5
 
     Double sunByMap(Map map);
+
+    Integer getSum(Map map);
 }
