@@ -216,11 +216,12 @@ public class ReportServiceImpl implements ReportService {
 
             //填充明细数据
             for (int i = 0; i < 30; i++) {
-                LocalDate dates = begin.plusDays(i);
-                BusinessDataVO data = workspaceService.getBusinessData(LocalDateTime.of(begin, LocalTime.MIN), LocalDateTime.of(dates, LocalTime.MAX));
+                LocalDate date = begin.plusDays(i);
+
+                BusinessDataVO data = workspaceService.getBusinessData(LocalDateTime.of(date, LocalTime.MIN), LocalDateTime.of(date, LocalTime.MAX));
 
                 XSSFRow sheetRow = sheet.getRow(7 + i);
-                sheetRow.getCell(1).setCellValue(dates.toString());
+                sheetRow.getCell(1).setCellValue(date.toString());
                 sheetRow.getCell(2).setCellValue(data.getTurnover());
                 sheetRow.getCell(3).setCellValue(data.getValidOrderCount());
                 sheetRow.getCell(4).setCellValue(data.getOrderCompletionRate());
